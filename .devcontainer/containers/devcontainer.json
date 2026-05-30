@@ -1,0 +1,55 @@
+
+  "name": "Remote Mosgarage Containers",
+  "image": "ghcr.io/open-cloud-dev/devcontainers:full",
+  "remoteUser": "dev",
+  "forwardPorts": [5000, 3000, 8000],
+  "postCreateCommand": "echo 'Setup complete!'",
+  "runArgs": [
+    "--network=host"
+    "--init",
+    "-v", "${env:HOME}/.ssh:/home/vscode/.ssh:ro"
+  ],
+  "mounts": [
+    "source=<your-ssh-key>,target=/home/ubuntu/.ssh/id_rsa,type=bind,consistency=consistent",
+    "source=<path-to-ssd-drive>,target=/home/ubuntu/dev,type=bind,consistency=consistent"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-docker"
+      ]
+    features": {
+		"ghcr.io/devcontainers/features/azure-cli:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/eitsupi/devcontainer-features/jq-likes:2.1.1": {},
+		"ghcr.io/lukewiwa/features/shellcheck:0": {}
+
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"moby": "false"
+		},
+		"ghcr.io/coder/devcontainer-features/code-server:1": {
+			"auth": "none",
+			"port": 13337
+		},
+		"./filebrowser": {
+			"folder": "/home/dev/localhost.git/.mosgarage/www-site-project/mosgarage-build"
+		}
+
+  },
+  "ssh": {
+    "host": "145.241.226.235",
+    "username": "dev",
+    "privateKey": "/home/ubuntu/.ssh/id_rsa"
+  }
+}
+      "extensions": [
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  },
+  "ssh": {
+    "host": "145.241.226.235",
+    "username": "ubuntu",
+    "privateKey": "/home/ubuntu/.ssh/id_rsa"
+  }
+}

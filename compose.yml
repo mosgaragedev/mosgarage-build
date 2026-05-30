@@ -1,0 +1,11 @@
+services:
+  dev-workspace:
+    build: .
+    container_name: mosgarage-app
+    volumes:
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "2222:22"
+    working_dir: /app
+    tty: true

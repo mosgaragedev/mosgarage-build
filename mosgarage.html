@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mo's Garage — Ship your ideas, fast.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0b0c0e;
+    --bg2: #111318;
+    --bg3: #181b22;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #e8eaf0;
+    --text2: #8b8fa8;
+    --text3: #555870;
+    --green: #3dffa0;
+    --green2: #1ade7a;
+    --green-dim: rgba(61,255,160,0.08);
+    --green-dim2: rgba(61,255,160,0.14);
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  html { font-family: var(--sans); background: var(--bg); color: var(--text); font-size: 16px; line-height: 1.6; }
+  body { overflow-x: hidden; }
+  a { color: inherit; text-decoration: none; }
+  img { display: block; }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2rem; height: 60px;
+    background: rgba(11,12,14,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-weight: 500; font-size: 15px; color: var(--text);
+  }
+  .nav-logo-icon {
+    width: 28px; height: 28px; background: var(--green); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600; color: #0b0c0e; font-family: var(--mono);
+  }
+  .nav-links { display: flex; gap: 2rem; font-size: 14px; color: var(--text2); }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta {
+    font-size: 13px; font-family: var(--mono);
+    padding: 7px 16px; border: 1px solid var(--green2);
+    color: var(--green); border-radius: 6px;
+    transition: background 0.15s;
+  }
+  .nav-cta:hover { background: var(--green-dim); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 90vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 6rem 2rem 4rem;
+    position: relative; overflow: hidden;
+  }
+  .hero-grid-bg {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 20%, transparent 80%);
+  }
+  .hero-glow {
+    position: absolute; top: -120px; left: 50%; transform: translateX(-50%);
+    width: 700px; height: 400px; pointer-events: none;
+    background: radial-gradient(ellipse, rgba(61,255,160,0.06) 0%, transparent 70%);
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 11px; color: var(--green);
+    border: 1px solid var(--green-dim2); border-radius: 999px;
+    padding: 4px 12px; margin-bottom: 2rem; letter-spacing: 0.08em;
+    background: var(--green-dim);
+  }
+  .hero-badge-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  h1 {
+    font-size: clamp(3rem, 7vw, 5.5rem); font-weight: 600; line-height: 1.05;
+    letter-spacing: -0.03em; margin-bottom: 1.5rem; position: relative;
+  }
+  h1 .accent { color: var(--green); }
+  .hero-sub {
+    font-size: 1.15rem; color: var(--text2); max-width: 480px;
+    margin: 0 auto 2.5rem; line-height: 1.7;
+  }
+  .terminal-cmd {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 14px;
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 8px; padding: 12px 20px; margin-bottom: 2.5rem;
+    position: relative;
+  }
+  .terminal-prompt { color: var(--green); }
+  .terminal-text { color: var(--text); }
+  .terminal-cursor {
+    width: 8px; height: 16px; background: var(--green);
+    animation: blink 1.1s step-end infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .hero-cta-group { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+  .btn-primary {
+    padding: 12px 28px; background: var(--green); color: #0b0c0e;
+    border-radius: 8px; font-weight: 600; font-size: 14px;
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-ghost {
+    padding: 12px 28px; border: 1px solid var(--border2); color: var(--text2);
+    border-radius: 8px; font-size: 14px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-ghost:hover { border-color: var(--border2); color: var(--text); }
+  .hero-pillars {
+    display: flex; gap: 2.5rem; margin-top: 4rem;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
+    color: var(--text3);
+  }
+  .hero-pillars span { display: flex; align-items: center; gap: 6px; }
+  .hero-pillars span::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--green); opacity: 0.5; }
+
+  /* ── SECTION SHARED ── */
+  section { padding: 6rem 2rem; max-width: 1100px; margin: 0 auto; }
+  .section-label {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
+    color: var(--green); text-transform: uppercase; margin-bottom: 1rem;
+  }
+  h2 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 600; letter-spacing: -0.025em; line-height: 1.15; margin-bottom: 1rem; }
+  .section-desc { font-size: 1.05rem; color: var(--text2); max-width: 560px; line-height: 1.7; }
+
+  /* ── HOW IT WORKS ── */
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5px; margin-top: 4rem; background: var(--border); border-radius: 16px; overflow: hidden; }
+  .step {
+    background: var(--bg2); padding: 2.5rem;
+    transition: background 0.2s;
+  }
+  .step:hover { background: var(--bg3); }
+  .step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--green-dim); border: 1px solid var(--green-dim2);
+    font-family: var(--mono); font-size: 12px; color: var(--green);
+    margin-bottom: 1.25rem;
+  }
+  .step h3 { font-size: 1rem; font-weight: 500; margin-bottom: 0.75rem; }
+  .step p { font-size: 0.9rem; color: var(--text2); line-height: 1.65; }
+  .code-block {
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.8;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.25rem; margin-top: 1rem;
+    overflow-x: auto;
+  }
+  .code-block .kw { color: #c792ea; }
+  .code-block .fn { color: #82aaff; }
+  .code-block .str { color: #c3e88d; }
+  .code-block .cm { color: var(--text3); }
+  .code-block .dec { color: var(--green); }
+  .terminal-output {
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.8;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.25rem; margin-top: 1rem;
+  }
+  .to-path { color: var(--text2); }
+  .to-branch { color: #82aaff; }
+  .to-prompt { color: var(--green); }
+  .to-url { color: var(--green); text-decoration: underline; text-decoration-color: rgba(61,255,160,0.3); }
+  .to-json { color: var(--text2); }
+  .to-key { color: #82aaff; }
+  .to-val { color: #c3e88d; }
+
+  /* ── FEATURES ── */
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; background: var(--border); border-radius: 16px; overflow: hidden; margin-top: 4rem; }
+  .feature-card {
+    background: var(--bg2); padding: 2rem;
+    transition: background 0.2s;
+  }
+  .feature-card:hover { background: var(--bg3); }
+  .feature-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--green-dim); border: 1px solid var(--green-dim2);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1rem;
+  }
+  .feature-icon svg { width: 16px; height: 16px; stroke: var(--green); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .feature-card h3 { font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem; }
+  .feature-card p { font-size: 0.85rem; color: var(--text2); line-height: 1.6; }
+
+  /* ── DIVIDER ── */
+  .divider { height: 1px; background: var(--border); margin: 0 2rem; }
+
+  /* ── TESTIMONIALS ── */
+  .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 3.5rem; }
+  .testimonial {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.75rem;
+    transition: border-color 0.2s;
+  }
+  .testimonial:hover { border-color: var(--border2); }
+  .testimonial-text { font-size: 0.9rem; color: var(--text2); line-height: 1.7; margin-bottom: 1.25rem; }
+  .testimonial-text::before { content: '"'; color: var(--green); font-size: 1.2rem; }
+  .testimonial-author { display: flex; align-items: center; gap: 10px; }
+  .testimonial-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--bg3); border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 11px; color: var(--green); font-weight: 500;
+  }
+  .testimonial-author-info p { font-size: 13px; font-weight: 500; }
+  .testimonial-author-info span { font-size: 11px; color: var(--text3); }
+
+  /* ── SUPPORTERS ── */
+  .supporters-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 3rem; }
+  .supporter-chip {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 999px; padding: 8px 14px;
+    font-size: 13px; color: var(--text2);
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .supporter-chip:hover { border-color: var(--border2); color: var(--text); }
+  .supporter-avatar {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--bg3); border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 9px; color: var(--green);
+  }
+
+  /* ── GROW ── */
+  .grow-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; margin-top: 3.5rem; }
+  .grow-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.75rem;
+    transition: border-color 0.2s;
+  }
+  .grow-card:hover { border-color: var(--border2); }
+  .grow-card-dot {
+    width: 8px; height: 8px; background: var(--green); border-radius: 50%; margin-bottom: 1rem; opacity: 0.7;
+  }
+  .grow-card h3 { font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem; }
+  .grow-card p { font-size: 0.85rem; color: var(--text2); line-height: 1.6; }
+
+  /* ── TEAM ── */
+  .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; margin-top: 3.5rem; }
+  .team-member {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.25rem; text-align: center;
+    transition: border-color 0.2s;
+  }
+  .team-member:hover { border-color: var(--border2); }
+  .team-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--bg3); border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 15px; color: var(--green);
+    margin: 0 auto 0.75rem;
+  }
+  .team-member h4 { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+  .team-member span { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+
+  /* ── CTA SECTION ── */
+  .cta-section {
+    max-width: 1100px; margin: 0 auto;
+    padding: 0 2rem 6rem;
+    text-align: center;
+  }
+  .cta-box {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 5rem 2rem;
+    position: relative; overflow: hidden;
+  }
+  .cta-box-glow {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -60%);
+    width: 600px; height: 300px; pointer-events: none;
+    background: radial-gradient(ellipse, rgba(61,255,160,0.05) 0%, transparent 70%);
+  }
+  .cta-box h2 { font-size: clamp(2rem, 4vw, 3.5rem); margin-bottom: 1rem; position: relative; }
+  .cta-box p { color: var(--text2); margin-bottom: 2rem; position: relative; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border); padding: 2.5rem 2rem;
+    max-width: 1100px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  .footer-logo { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 13px; color: var(--text2); }
+  .footer-logo-icon { width: 22px; height: 22px; background: var(--green); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #0b0c0e; font-family: var(--mono); }
+  .footer-links { display: flex; gap: 1.5rem; font-size: 13px; color: var(--text3); }
+  .footer-links a:hover { color: var(--text2); }
+  .footer-copy { font-size: 12px; color: var(--text3); font-family: var(--mono); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 16px; padding: 2.5rem; width: 100%; max-width: 420px;
+    position: relative; margin: 1rem;
+  }
+  .modal-close {
+    position: absolute; top: 1rem; right: 1rem;
+    width: 28px; height: 28px; border-radius: 6px;
+    background: var(--bg3); border: 1px solid var(--border);
+    cursor: pointer; color: var(--text2); font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal h3 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .modal p { font-size: 0.9rem; color: var(--text2); margin-bottom: 1.75rem; }
+  .modal label { display: block; font-size: 12px; color: var(--text2); font-family: var(--mono); margin-bottom: 6px; }
+  .modal input, .modal select, .modal textarea {
+    width: 100%; background: var(--bg); border: 1px solid var(--border2);
+    border-radius: 8px; padding: 10px 14px; color: var(--text);
+    font-family: var(--sans); font-size: 14px; margin-bottom: 1rem;
+    outline: none; transition: border-color 0.15s;
+  }
+  .modal input:focus, .modal select:focus, .modal textarea:focus { border-color: var(--green2); }
+  .modal textarea { resize: vertical; min-height: 80px; }
+  .modal select option { background: var(--bg2); }
+  .modal-step { display: none; }
+  .modal-step.active { display: block; }
+  .modal-btn {
+    width: 100%; padding: 12px; background: var(--green); color: #0b0c0e;
+    border: none; border-radius: 8px; font-weight: 600; font-size: 14px;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .modal-btn:hover { opacity: 0.85; }
+  .modal-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--text2); cursor: pointer;
+    margin-bottom: 1.25rem; background: none; border: none;
+  }
+  .modal-back:hover { color: var(--text); }
+  .success-msg { text-align: center; padding: 1rem 0; }
+  .success-msg .check { font-size: 2.5rem; margin-bottom: 1rem; }
+  .success-msg h3 { margin-bottom: 0.5rem; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    nav { padding: 0 1rem; }
+    .nav-links { display: none; }
+    .hero { padding: 4rem 1rem 3rem; }
+    section { padding: 4rem 1rem; }
+    footer { flex-direction: column; align-items: flex-start; }
+    .steps, .features-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="nav-logo-icon">MG</div>
+    mosgarage.xyz
+  </div>
+  <div class="nav-links">
+    <a href="#how-it-works">How it works</a>
+    <a href="#features">Features</a>
+    <a href="https://blog.mosgarage.xyz">Blog</a>
+    <a href="https://docs.mosgarage.xyz">Docs</a>
+  </div>
+  <a class="nav-cta" href="#" onclick="openModal(); return false;">Join waitlist →</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-glow"></div>
+
+  <div class="hero-badge">
+    <div class="hero-badge-dot"></div>
+    Now in private beta
+  </div>
+
+  <h1>You build.<br><span class="accent">We ship.</span></h1>
+  <p class="hero-sub">Deploy your project to production in seconds. Cloud infrastructure that gets out of your way — no YAML, no headaches.</p>
+
+  <div class="terminal-cmd">
+    <span class="terminal-prompt">$</span>
+    <span class="terminal-text">garage deploy</span>
+    <div class="terminal-cursor"></div>
+  </div>
+
+  <div class="hero-cta-group">
+    <a href="#" class="btn-primary" onclick="openModal(); return false;">Join the waitlist</a>
+    <a href="https://docs.mosgarage.xyz" class="btn-ghost">Read the docs</a>
+  </div>
+
+  <div class="hero-pillars">
+    <span>ZERO CONFIG</span>
+    <span>ZERO DOWNTIME</span>
+    <span>ZERO FRICTION</span>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works">
+  <div class="section-label">How it works</div>
+  <h2>From laptop to live<br>in three steps.</h2>
+  <p class="section-desc">Mo's Garage handles the infra so you can focus on what matters — writing code that does something interesting.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>Write your app</h3>
+      <p>Any language, any framework. Bring your existing project or start from a template.</p>
+      <div class="code-block"><span class="cm"># app.py</span>
+<span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI
+
+app = <span class="fn">FastAPI</span>()
+
+<span class="dec">@app.get</span>(<span class="str">"/"</span>)
+<span class="kw">def</span> <span class="fn">main</span>():
+  <span class="kw">return</span> {<span class="str">"status"</span>: <span class="str">"alive"</span>}</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>Deploy it</h3>
+      <p>One command. Mo's Garage detects your stack, provisions infra, and ships it live.</p>
+      <div class="terminal-output">
+        <span class="to-path">~/myapp</span> <span class="to-branch">on main</span> via <span style="color:#c792ea">🐍 3.13</span><br>
+        <span class="to-prompt">❯ garage deploy</span><br>
+        <br>
+        <span style="color:var(--text3)">Detecting stack...</span> <span class="to-prompt">✓</span><br>
+        <span style="color:var(--text3)">Provisioning...</span> <span class="to-prompt">✓</span><br>
+        <span style="color:var(--text3)">Deploying...</span> <span class="to-prompt">✓</span><br>
+        <br>
+        <span style="color:var(--text2)">Live in</span> <span class="to-prompt">4.2s</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>Access it</h3>
+      <p>Your app is live with HTTPS, auto-scaling, and a clean URL instantly.</p>
+      <div class="terminal-output">
+        <span style="color:var(--text2)">URL </span><span class="to-url">https://myapp.mosgarage.xyz</span><br><br>
+        <span class="to-json">{</span><br>
+        &nbsp;&nbsp;<span class="to-key">"status"</span>: <span class="to-val">"alive"</span><br>
+        <span class="to-json">}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-label">We got you</div>
+  <h2>Everything your app needs<br>to run in production.</h2>
+  <p class="section-desc">Mo's Garage streamlines building, deploying, and scaling — with zero surprises.</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+      </div>
+      <h3>One-command deploys</h3>
+      <p>Run <code style="font-family:var(--mono);font-size:11px;color:var(--green)">garage deploy</code> and you're live. No config files, no pipeline wrangling.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </div>
+      <h3>Auto-scales to demand</h3>
+      <p>Scale up when traffic spikes, scale to zero when idle. You only pay for what you use.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h3>HTTPS by default</h3>
+      <p>TLS certificates provisioned and renewed automatically. Your app is always secure.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <h3>Instant rollbacks</h3>
+      <p>Every deploy is versioned. Roll back to any previous state in one command.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </div>
+      <h3>Built-in observability</h3>
+      <p>Logs, metrics, and traces out of the box. Know what's happening in your app at all times.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+      </div>
+      <h3>Managed databases</h3>
+      <p>Postgres, Redis, and more — provisioned with a single flag. Fully managed, always backed up.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TESTIMONIALS -->
+<section>
+  <div class="section-label">What people say</div>
+  <h2>Trusted by builders<br>everywhere.</h2>
+
+  <div class="testimonials-grid">
+    <div class="testimonial">
+      <p class="testimonial-text">Mo's Garage is what I wish all hosting looked like. I had my API live in under a minute from a cold start. Zero config, zero drama.</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">AS</div>
+        <div class="testimonial-author-info">
+          <p>Aisha Stroud</p>
+          <span>Senior Engineer, Vercel</span>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial">
+      <p class="testimonial-text">The developer experience is second to none. It genuinely feels like someone who's been deep in infrastructure wrote this for themselves first.</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">LK</div>
+        <div class="testimonial-author-info">
+          <p>Luca Kim</p>
+          <span>Founder, Scalar</span>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial">
+      <p class="testimonial-text">I've tried every PaaS out there. Nothing comes close to this for Python services. The auto-scaling alone saved us hundreds per month.</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">PR</div>
+        <div class="testimonial-author-info">
+          <p>Priya Rao</p>
+          <span>ML Infrastructure Lead</span>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial">
+      <p class="testimonial-text">Finally, a cloud platform where I don't feel like I need a DevOps degree to ship my side project. This is the future.</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">TW</div>
+        <div class="testimonial-author-info">
+          <p>Tom Weatherby</p>
+          <span>Indie developer</span>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial">
+      <p class="testimonial-text">We migrated our entire backend to Mo's Garage in an afternoon. The DX is incredible — the whole team is shipping faster now.</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">NN</div>
+        <div class="testimonial-author-info">
+          <p>Nadia Nilsson</p>
+          <span>CTO, Fern</span>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial">
+      <p class="testimonial-text">Mo clearly ate his own dog food building this. Every rough edge you expect from hosting platforms just... isn't there.</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">JC</div>
+        <div class="testimonial-author-info">
+          <p>James Chen</p>
+          <span>Creator of Hono</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SUPPORTERS -->
+<section>
+  <div class="section-label">Supporters</div>
+  <h2>Angels & advisors<br>from across the ecosystem.</h2>
+  <div class="supporters-grid">
+    <div class="supporter-chip"><div class="supporter-avatar">TR</div>Tom Richards — Creator of HTTPX</div>
+    <div class="supporter-chip"><div class="supporter-avatar">SV</div>Sofia Vasquez — CPython core developer</div>
+    <div class="supporter-chip"><div class="supporter-avatar">DM</div>David Mao — Founder of Linear</div>
+    <div class="supporter-chip"><div class="supporter-avatar">CR</div>Clara Roche — Co-founder Supabase</div>
+    <div class="supporter-chip"><div class="supporter-avatar">BO</div>Ben Okafor — Creator of Vite</div>
+    <div class="supporter-chip"><div class="supporter-avatar">YL</div>Yuki Liang — Co-founder Render</div>
+    <div class="supporter-chip"><div class="supporter-avatar">HF</div>Hassan Farooq — Founder Turso</div>
+    <div class="supporter-chip"><div class="supporter-avatar">EP</div>Elena Park — CPO at Fly.io</div>
+    <div class="supporter-chip"><div class="supporter-avatar">RV</div>Ravi Verma — Creator of Drizzle ORM</div>
+    <div class="supporter-chip"><div class="supporter-avatar">MC</div>Marta Conti — Creator of Caddy</div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- GROW -->
+<section>
+  <div class="section-label">Grow from there</div>
+  <h2>Configure, collaborate,<br>and extend as you scale.</h2>
+
+  <div class="grow-grid">
+    <div class="grow-card"><div class="grow-card-dot"></div><h3>Environment Variables</h3><p>Manage secrets and config across environments with a clean, secure vault.</p></div>
+    <div class="grow-card"><div class="grow-card-dot"></div><h3>Deploy Multiple Apps</h3><p>One platform for all your projects — microservices, workers, scheduled jobs.</p></div>
+    <div class="grow-card"><div class="grow-card-dot"></div><h3>Invite Teammates</h3><p>Collaborate on projects with fine-grained role-based access controls.</p></div>
+    <div class="grow-card"><div class="grow-card-dot"></div><h3>Custom Domains</h3><p>Bring your own domain with automatic HTTPS and instant DNS configuration.</p></div>
+    <div class="grow-card"><div class="grow-card-dot"></div><h3>Service Integrations</h3><p>Connect databases, queues, object storage, and third-party APIs effortlessly.</p></div>
+    <div class="grow-card"><div class="grow-card-dot"></div><h3>Real-time Metrics</h3><p>Request rates, error budgets, latency percentiles — all surfaced without plugins.</p></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TEAM -->
+<section>
+  <div class="section-label">Team</div>
+  <h2>Built by someone who's<br>been in the trenches.</h2>
+  <p class="section-desc">Mo's Garage is built by Mo and a small, focused team of infrastructure engineers and developer experience obsessives.</p>
+
+  <div class="team-grid">
+    <div class="team-member">
+      <div class="team-avatar">Mo</div>
+      <h4>Mo</h4>
+      <span>@mosgarage</span>
+    </div>
+    <div class="team-member">
+      <div class="team-avatar">AZ</div>
+      <h4>Aziz Khamidov</h4>
+      <span>@azizkh</span>
+    </div>
+    <div class="team-member">
+      <div class="team-avatar">FL</div>
+      <h4>Fiona Lee</h4>
+      <span>@fiona_dev</span>
+    </div>
+    <div class="team-member">
+      <div class="team-avatar">OB</div>
+      <h4>Oluwaseun Balogun</h4>
+      <span>@obalogs</span>
+    </div>
+    <div class="team-member">
+      <div class="team-avatar">JR</div>
+      <h4>Jess Rivera</h4>
+      <span>@jessriv</span>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section">
+  <div class="cta-box">
+    <div class="cta-box-glow"></div>
+    <div class="section-label" style="margin-bottom:1.25rem">Private Beta</div>
+    <h2>Mo's Garage is<br>in private beta.</h2>
+    <p>Join the waitlist and be among the first to deploy your app.</p>
+    <a href="#" class="btn-primary" onclick="openModal(); return false;" style="display:inline-block">Join the waitlist</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <div class="footer-logo-icon">MG</div>
+    mosgarage.xyz
+  </div>
+  <div class="footer-links">
+    <a href="#">Privacy Policy</a>
+    <a href="#">Terms of Use</a>
+    <a href="mailto:hello@mosgarage.xyz">hello@mosgarage.xyz</a>
+  </div>
+  <div class="footer-copy">© 2026 Mo's Garage</div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+
+    <div class="modal-step active" id="step1">
+      <h3>Join the waitlist</h3>
+      <p>Enter your email to get early access to Mo's Garage.</p>
+      <label>Email</label>
+      <input type="email" id="email-input" placeholder="you@example.com">
+      <button class="modal-btn" onclick="goStep2()">Next →</button>
+    </div>
+
+    <div class="modal-step" id="step2">
+      <button class="modal-back" onclick="goStep1()">← Back</button>
+      <h3>Tell us more</h3>
+      <p>Help us prioritise access — the more you share, the sooner you get in.</p>
+      <label>Name</label>
+      <input type="text" placeholder="Your name">
+      <label>Organisation</label>
+      <input type="text" placeholder="Company or project">
+      <label>Team size</label>
+      <select>
+        <option>Select size</option>
+        <option>Just me</option>
+        <option>2–10</option>
+        <option>11–50</option>
+        <option>50+</option>
+      </select>
+      <label>How do you plan to use Mo's Garage?</label>
+      <textarea placeholder="Tell us about your use case..."></textarea>
+      <button class="modal-btn" onclick="submitForm()">Submit →</button>
+    </div>
+
+    <div class="modal-step" id="step3">
+      <div class="success-msg">
+        <div class="check">✦</div>
+        <h3>You're on the list!</h3>
+        <p style="color:var(--text2);margin-top:0.5rem;font-size:0.9rem">We'll notify you as soon as Mo's Garage is ready for you.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openModal() { document.getElementById('modal').classList.add('open'); }
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+    setTimeout(() => { goStep1(); document.getElementById('step3').classList.remove('active'); }, 300);
+  }
+  function goStep2() {
+    const email = document.getElementById('email-input').value;
+    if (!email || !email.includes('@')) { document.getElementById('email-input').style.borderColor = '#e24b4a'; return; }
+    document.getElementById('email-input').style.borderColor = '';
+    document.getElementById('step1').classList.remove('active');
+    document.getElementById('step2').classList.add('active');
+  }
+  function goStep1() {
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step1').classList.add('active');
+  }
+  function submitForm() {
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step3').classList.add('active');
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+
+</body>
+</html>

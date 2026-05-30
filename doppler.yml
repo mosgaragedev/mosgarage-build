@@ -1,0 +1,4 @@
+setup:
+  - project: mosgaragehub
+    env_file: ../../shared-projects-workspace/.env_projectenv
+    config: dev_personal

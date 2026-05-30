@@ -1,0 +1,87 @@
+parameters:
+  - name: poolNameTemplate
+    type: string
+    default: ""
+  - name: poolVmImage
+    type: string
+    default: "ubuntu-22.04"
+  - name: sourceBranch
+    type: string
+    default: "refs/heads/master"
+  - name: azureSubscriptionTemplate
+    type: string
+  - name: terraformFolder
+    type: string
+  - name: environments
+    type: object
+    default:
+      - name: dev
+      - name: qa
+      - name: prod
+  - name: awsRegion
+    type: string
+    default: ""
+  - name: awsServiceConnectionTemplate
+    type: string
+    default: ""
+  - name: timeoutInMinutes
+    type: string
+    default: "60"    
+
+stages:
+  - ${{ each env in parameters.environments }}:
+      - stage: apply_${{ env.name }}
+        displayName: ${{ env.name }}
+        condition: and(succeeded(), eq(variables['Build.sourceBranch'], '${{ parameters.sourceBranch }}'))
+        jobs:
+          - deployment: ${{ env.name }}
+            pool:
+              ${{ if not(eq(parameters.poolNameTemplate, '')) }}:
+                name: ${{ format(parameters.poolNameTemplate, env.name) }}
+              ${{ if not(eq(parameters.poolVmImage, '')) }}:
+                vmImage: ${{ parameters.poolVmImage }}
+            environment: ${{ env.name }}
+            displayName: Terraform Apply
+            timeoutInMinutes: ${{ parameters.timeoutInMinutes }}
+            strategy:
+              runOnce:
+                deploy:
+                  steps:
+                    - checkout: self
+                      displayName: Get sources
+
+                    - ${{ if not(eq(parameters.awsRegion, '')) }}:
+                        - template: ../aws_creds.yaml
+                          parameters:
+                            awsRegion: ${{ parameters.awsRegion }}
+                            awsServiceConnection: ${{ format(parameters.awsServiceConnectionTemplate, env.name) }}
+
+                    - bash: |
+                        mkdir -p ${TERRAFORM_PLAN_FOLDER}
+                      env:
+                        TERRAFORM_PLAN_FOLDER: $(Build.Repository.LocalPath)/${{ parameters.terraformFolder }}/.terraform/plan
+                      displayName: Create terraform plan folder
+
+                    - task: DownloadPipelineArtifact@2
+                      displayName: "Download artifact"
+                      inputs:
+                        artifact: "${{ env.name }}.enc"
+                        path: $(Build.Repository.LocalPath)/${{ parameters.terraformFolder }}/.terraform/plans
+
+                    - task: AzureCLI@1
+                      displayName: "Apply"
+                      inputs:
+                        azureSubscription: ${{ format(parameters.azureSubscriptionTemplate, env.name) }}
+                        addSpnToEnvironment: true
+                        scriptLocation: inlineScript
+                        inlineScript: |
+                          set -e
+                          make apply
+                      env:
+                        CI: "true"
+                        DIR: ${{ parameters.terraformFolder }}
+                        ENV: ${{ env.name }}
+                        AWS_ACCESS_KEY_ID: $(awsAccessKeyId)
+                        AWS_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+                        AWS_DEFAULT_REGION: $(awsDefaultRegion)
+                      timeoutInMinutes: ${{ parameters.timeoutInMinutes }}

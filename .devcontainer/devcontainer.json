@@ -18,7 +18,23 @@
       "extensions": [
         "ms-azuretools.vscode-docker"
       ]
-    }
+    features": {
+		"ghcr.io/devcontainers/features/azure-cli:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+		"ghcr.io/eitsupi/devcontainer-features/jq-likes:2.1.1": {},
+		"ghcr.io/lukewiwa/features/shellcheck:0": {}
+
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"moby": "false"
+		},
+		"ghcr.io/coder/devcontainer-features/code-server:1": {
+			"auth": "none",
+			"port": 13337
+		},
+		"./filebrowser": {
+			"folder": "/home/dev/localhost.git/.mosgarage/www-site-project/mosgarage-code-server"
+		}
+
   },
   "ssh": {
     "host": "145.241.226.235",

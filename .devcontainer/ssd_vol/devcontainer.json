@@ -1,0 +1,19 @@
+// devcontainer.json
+{
+  "name": "Hybrid SSD + SSHFS Dev Container",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+
+  // Direct SSD bind mount
+  "mounts": [
+    "type=bind,source=/mnt/data,target=/workspace/data"
+  ],
+
+  // Workspace location
+  "workspaceFolder": "/workspace",
+
+  // Install sshfs and dependencies
+  "postCreateCommand": "apt-get update && apt-get install -y sshfs && ./mount_ssh.sh",
+
+  // Make sure our script is executable
+  "postStartCommand": "chmod +x /workspace/mount_ssh.sh"
+}

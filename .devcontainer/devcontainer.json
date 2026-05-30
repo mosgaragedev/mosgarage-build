@@ -1,0 +1,39 @@
+
+  "name": "Remote Mosgarage Containers",
+  "image": "ghcr.io/open-cloud-dev/devcontainers:full",
+  "remoteUser": "dev",
+  "forwardPorts": [5000, 3000, 8000],
+  "postCreateCommand": "echo 'Setup complete!'",
+  "runArgs": [
+    "--network=host"
+    "--init",
+    "-v", "${env:HOME}/.ssh:/home/vscode/.ssh:ro"
+  ],
+  "mounts": [
+    "source=<your-ssh-key>,target=/home/ubuntu/.ssh/id_rsa,type=bind,consistency=consistent",
+    "source=<path-to-ssd-drive>,target=/home/ubuntu/dev,type=bind,consistency=consistent"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  },
+  "ssh": {
+    "host": "145.241.226.235",
+    "username": "dev",
+    "privateKey": "/home/ubuntu/.ssh/id_rsa"
+  }
+}
+      "extensions": [
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  },
+  "ssh": {
+    "host": "145.241.226.235",
+    "username": "ubuntu",
+    "privateKey": "/home/ubuntu/.ssh/id_rsa"
+  }
+}

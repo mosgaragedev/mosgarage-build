@@ -1,0 +1,208 @@
+parameters:
+  - name: poolName
+    type: string
+    default: ""
+  - name: environment
+    type: string
+    default: ""
+  - name: serviceName
+    type: string
+    default: ""
+  - name: sourceBranch
+    type: string
+    default: ""
+  - name: deployTags
+    type: boolean
+    default: false
+  - name: imageTagPath
+    type: string
+    default: ""
+  - name: acrName
+    type: string
+    default: ""
+  - name: imagePathPrefix
+    type: string
+    default: ""
+  - name: gitopsRepoBranch
+    type: string
+    default: ""
+  - name: tagIsFullName
+    type: boolean
+    default: false
+  - name: binaries
+    type: object
+    default:
+      fluxStatus:
+        tag: "v0.3.0"
+        sha: "9e32ff239238953119ae96fa8f578896fda0f24c1a1da4d41d4c61a8e2003a04"
+      jq:
+        tag: "jq-1.6"
+        sha: "af986793a515d500ab2d35f8d2aecd656e764504b789b66d7e1a0b727a124c44"
+
+jobs:
+  - deployment: deploy_${{ parameters.environment }}
+    timeoutInMinutes: 20
+    displayName: Deploy to ${{ parameters.environment }}
+    pool:
+      name: ${{ parameters.poolName }}
+    continueOnError: false
+    environment: ${{ parameters.environment }}
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - checkout: self
+              displayName: Get sources
+              persistCredentials: true
+
+            - bash: |
+                set -e
+                IMAGE_TAG=${SOURCE_VERSION:0:7}
+                echo "##vso[task.setvariable variable=imageTag]$IMAGE_TAG"
+              displayName: "Create image id"
+              env:
+                SOURCE_VERSION: $(resources.pipeline.ciPipeline.sourceCommit)
+
+            - bash: |
+                set -ex
+                export PATH=$PATH:~/.local/bin
+                pip3 install --user yq
+
+                git checkout ${GITOPS_REPO_BRANCH}
+                git pull
+                git fetch -p
+                git reset --hard origin/${GITOPS_REPO_BRANCH}
+                git config --global user.email "azure-pipelines@${PROJECT_NAME}.${REPO_NAME}"
+                git config --global user.name "Azure Pipelines (${PROJECT_NAME} ${REPO_NAME})"
+                git status
+
+                if [[ "${TAG_IS_FULL_NAME}" == "True" ]]; then
+                  CURRENT_IMAGE_ID_FULL=$(yq -r "${TAG_PATH}" ${ENV}/${SERVICE_NAME}.yaml)
+                  NEW_IMAGE_ID_FULL="${ACR_NAME}.azurecr.io/${IMAGE_PATH_PREFIX}/${SERVICE_NAME}:${NEW_TAG}"
+                  if [ "${CURRENT_IMAGE_ID_FULL}" == "${NEW_IMAGE_ID_FULL}" ]; then
+                    echo "Image tag for ${ENV}/${SERVICE_NAME}.yaml is already ${NEW_IMAGE_ID_FULL}"
+                    exit 0
+                  fi
+
+                  echo "Changing image tag from ${CURRENT_IMAGE_ID_FULL} to ${NEW_IMAGE_ID_FULL} for ${ENV}/${SERVICE_NAME}.yaml"
+                  yq --in-place -Y "${TAG_PATH}=\"${NEW_IMAGE_ID_FULL}\"" ${ENV}/${SERVICE_NAME}.yaml
+                else
+                  CURRENT_TAG=$(yq -r "${TAG_PATH}" ${ENV}/${SERVICE_NAME}.yaml)
+                  if [ "${CURRENT_TAG}" == "${NEW_TAG}" ]; then
+                    echo "Image tag for ${ENV}/${SERVICE_NAME}.yaml is already ${NEW_TAG}"
+                    exit 0
+                  fi
+
+                  echo "Changing image tag from ${CURRENT_TAG} to ${NEW_TAG} for ${ENV}/${SERVICE_NAME}.yaml"
+                  yq --in-place -Y "${TAG_PATH}=\"${NEW_TAG}\"" ${ENV}/${SERVICE_NAME}.yaml
+                fi
+
+                git add ${ENV}/${SERVICE_NAME}.yaml
+                git status
+                git commit -m "${ENV}/${SERVICE_NAME}.yaml - changed image tag from ${CURRENT_TAG} to ${NEW_TAG}"
+                git pull --rebase origin ${GITOPS_REPO_BRANCH}
+                git push origin
+              displayName: "Change image in GitOps repo"
+              env:
+                ENV: ${{ parameters.environment }}
+                SERVICE_NAME: ${{ parameters.serviceName }}
+                NEW_TAG: $(imageTag)
+                TAG_PATH: ${{ parameters.imageTagPath }}
+                PROJECT_NAME: $(System.TeamProject)
+                REPO_NAME: $(Build.Repository.Name)
+                GITOPS_REPO_BRANCH: ${{ parameters.gitopsRepoBranch }}
+                TAG_IS_FULL_NAME: ${{ parameters.tagIsFullName }}
+                ACR_NAME: ${{ parameters.acrName }}
+                IMAGE_PATH_PREFIX: ${{ parameters.imagePathPrefix }}
+
+            - bash: |
+                set -ex
+                export PATH=$PATH:~/.local/bin
+                pip3 install --user yq
+                wget https://github.com/XenitAB/flux-status/releases/download/${FLUX_STATUS_CLI_TAG}/flux-status-cli
+                DOWNLOAD_FLUX_STATUS_CLI_SHA=$(openssl sha1 -sha256 flux-status-cli | awk '{print $2}')
+                if [[ "${FLUX_STATUS_CLI_SHA}" != "${DOWNLOAD_FLUX_STATUS_CLI_SHA}" ]]; then
+                    echo "Downloaded checksum (${DOWNLOAD_FLUX_STATUS_CLI_SHA}) for flux-status-cli does not match expected value: ${FLUX_STATUS_CLI_SHA}"
+                    exit 1
+                fi
+                chmod +x flux-status-cli
+                wget https://github.com/stedolan/jq/releases/download/${JQ_TAG}/jq-linux64
+                DOWNLOAD_JQ_SHA=$(openssl sha1 -sha256 jq-linux64 | awk '{print $2}')
+                if [[ "${JQ_SHA}" != "${DOWNLOAD_JQ_SHA}" ]]; then
+                    echo "Downloaded checksum (${DOWNLOAD_JQ_SHA}) for jq-linux64 does not match expected value: ${JQ_SHA}"
+                    exit 1
+                fi
+                mv jq-linux64 jq
+                chmod +x jq
+
+                git checkout ${GITOPS_REPO_BRANCH}
+                git pull
+                git fetch -p
+                git reset --hard origin/${GITOPS_REPO_BRANCH}
+                git config --global user.email "azure-pipelines@${PROJECT_NAME}.${REPO_NAME}"
+                git config --global user.name "Azure Pipelines (${PROJECT_NAME} ${REPO_NAME})"
+                git status
+
+                # Change REPO_URI if using legacy url
+                if echo ${REPO_URI} | grep -Eq '^https://.*\.visualstudio\.com/.*'; then
+                  AZDO_ORG=$(echo $REPO_URI | sed -E "s|https://(.*)\.visualstudio\.com/.*|\1|g")
+                  AZDO_PATH=$(echo $REPO_URI | sed -E "s|https://.*\.visualstudio\.com/(.*)|\1|g")
+                  REPO_URI="https://dev.azure.com/${AZDO_ORG}/${AZDO_PATH}"
+                fi
+
+                while true; do
+                  sleep 5
+
+                  git pull origin ${GITOPS_REPO_BRANCH}
+
+                  if [[ "${TAG_IS_FULL_NAME}" == "True" ]]; then
+                    CURRENT_IMAGE_ID_FULL=$(yq -r "${TAG_PATH}" ${ENV}/${SERVICE_NAME}.yaml)
+                    NEW_IMAGE_ID_FULL="${ACR_NAME}.azurecr.io/${IMAGE_PATH_PREFIX}/${SERVICE_NAME}:${NEW_TAG}"
+                    if [ "${CURRENT_IMAGE_ID_FULL}" != "${NEW_IMAGE_ID_FULL}" ]; then
+                      echo "Image tag for ${ENV}/${SERVICE_NAME}.yaml is no longer the expected value of ${NEW_IMAGE_ID_FULL}"
+                      exit 0
+                    fi
+                  else
+                    CURRENT_TAG=$(yq -r "${TAG_PATH}" ${ENV}/${SERVICE_NAME}.yaml)
+                    if [ "${CURRENT_TAG}" != "${NEW_TAG}" ]; then
+                      echo "Image tag for ${ENV}/${SERVICE_NAME}.yaml is no longer the expected value ${NEW_TAG}"
+                      exit 1
+                    fi
+                  fi
+
+                  COMMIT_ID=$(git rev-list -1 HEAD -- $ENV)
+
+                  set +e
+                  RESULT=$(./flux-status-cli --instance ${ENV} --action workload  --git-url ${REPO_URI} --azdo-pat ${TOKEN} --commit-id ${COMMIT_ID})
+                  if [ $? -ne 0 ]; then
+                    echo $RESULT
+                    continue
+                  fi
+                  set -e
+
+                  STATE=$(echo $RESULT | ./jq -r .state)
+                  echo "Commit status is $STATE"
+                  if [ $STATE == "succeeded" ]; then
+                    exit 0
+                  elif [[ $STATE == "failed" || $STATE == "canceled" ]]; then
+                    exit 1
+                  fi
+                done
+              displayName: Wait for ${{ parameters.environment }}
+              env:
+                ENV: ${{ parameters.environment }}
+                SERVICE_NAME: ${{ parameters.serviceName }}
+                NEW_TAG: $(imageTag)
+                TAG_PATH: ${{ parameters.imageTagPath }}
+                PROJECT_NAME: $(System.TeamProject)
+                REPO_NAME: $(Build.Repository.Name)
+                REPO_URI: $(Build.Repository.Uri)
+                TOKEN: $(System.AccessToken)
+                FLUX_STATUS_CLI_TAG: ${{ parameters.binaries.fluxStatus.tag }}
+                FLUX_STATUS_CLI_SHA: ${{ parameters.binaries.fluxStatus.sha }}
+                JQ_TAG: ${{ parameters.binaries.jq.tag }}
+                JQ_SHA: ${{ parameters.binaries.jq.sha }}
+                GITOPS_REPO_BRANCH: ${{ parameters.gitopsRepoBranch }}
+                TAG_IS_FULL_NAME: ${{ parameters.tagIsFullName }}
+                ACR_NAME: ${{ parameters.acrName }}
+                IMAGE_PATH_PREFIX: ${{ parameters.imagePathPrefix }}

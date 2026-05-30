@@ -1,0 +1,65 @@
+parameters:
+  - name: poolNameTemplate
+    type: string
+  - name: sourceBranch
+    type: string
+    default: "refs/heads/master"
+  - name: serviceName
+    type: string
+  - name: azureSubscriptionTemplate
+    type: string
+  - name: acrNameTemplate
+    type: string
+  - name: imagePathPrefix
+    type: string
+  - name: gitopsRepoBranch
+    type: string
+    default: "master"
+  - name: tagIsFullName
+    type: boolean
+    default: false
+  - name: environments
+    type: object
+    default:
+      - name: dev
+        deployTags: false
+        extraTag: "latest"
+      - name: qa
+        deployTags: true
+      - name: prod
+        deployTags: true
+  - name: imageTagPath
+    type: string
+    default: ".spec.values.image.tag"
+
+stages:
+  - stage: push
+    jobs:
+      - ${{ each env in parameters.environments }}:
+          - template: push.yaml
+            parameters:
+              poolName: ${{ format(parameters.poolNameTemplate, env.name) }}
+              sourceBranch: ${{ parameters.sourceBranch }}
+              environment: ${{ env.name }}
+              serviceName: ${{ parameters.serviceName }}
+              tagLatest: ${{ env.tagLatest }}
+              azureSubscription: ${{ format(parameters.azureSubscriptionTemplate, env.name) }}
+              acrName: ${{ format(parameters.acrNameTemplate, env.name) }}
+              imagePathPrefix: ${{ parameters.imagePathPrefix }}
+
+  - ${{ each env in parameters.environments }}:
+      - stage: deploy_${{ env.name }}
+        condition: and(not(failed()), not(canceled()), or(and(eq(variables['resources.pipeline.ciPipeline.sourceBranch'], '${{ parameters.sourceBranch }}'), eq(${{ env.deployTags }}, false)), and(startsWith(variables['resources.pipeline.ciPipeline.sourceBranch'], 'refs/tags/'), eq(${{ env.deployTags }}, true))))
+        jobs:
+          - template: deploy.yaml
+            parameters:
+              poolName: ${{ format(parameters.poolNameTemplate, env.name) }}
+              sourceBranch: ${{ parameters.sourceBranch }}
+              environment: ${{ env.name }}
+              deployTags: ${{ env.deployTags }}
+              serviceName: ${{ parameters.serviceName }}
+              imageTagPath: ${{ parameters.imageTagPath }}
+              gitopsRepoBranch: ${{ parameters.gitopsRepoBranch }}
+              tagIsFullName: ${{ parameters.tagIsFullName }}
+              acrName: ${{ format(parameters.acrNameTemplate, env.name) }}
+              imagePathPrefix: ${{ parameters.imagePathPrefix }}

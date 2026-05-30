@@ -1,0 +1,25 @@
+{
+  "name": "Remote Ubuntu VPS",
+  "image": "ghcr.io/open-cloud-dev/devcontainers/full",
+  "remoteUser": "dev",
+  "forwardPorts": [],
+  "postCreateCommand": "echo 'Setup complete!'",
+  "runArgs": [
+    "--network=host"
+  ],
+  "mounts": [
+    // SSH-mounted drive on Windows (via /mnt/localhost)
+    "type=bind,source=/mnt/localhost/z/ssh-drive,target=/workspace/ssh-drive",
+
+    // Local SSD data
+    "type=bind,source=/mnt/data,target=/workspace/data",
+
+    // Another SSH mount inside WSL/Linux
+    "type=bind,source=/mnt/ssh,target=/workspace/ssh"
+  ],
+
+  "workspaceFolder": "/workspace"
+}
+  ],
+  "customizations": {
+    "vscode": {{

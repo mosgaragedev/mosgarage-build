@@ -1,0 +1,108 @@
+parameters:
+  poolName: ""
+  environment: ""
+  sourceBranch: ""
+  azureSubscription: ""
+  serviceName: ""
+  acrName: ""
+  imagePathPrefix: ""
+  extraTag: ""
+
+jobs:
+  - job: push_${{ parameters.environment }}
+    condition: and(succeeded(), eq(variables['resources.pipeline.ciPipeline.sourceBranch'], '${{ parameters.sourceBranch }}'))
+    displayName: Push image to ${{ parameters.environment }}
+    pool:
+      name: ${{ parameters.poolName }}
+    continueOnError: false
+    steps:
+      - bash: |
+          set -e
+          IMAGE_ID=${SERVICE_NAME}:${SOURCE_VERSION:0:7}
+          ARTIFACT_FILE_NAME=${IMAGE_ID/:/_}.tar.gz
+          echo "##vso[task.setvariable variable=imageId]$IMAGE_ID"
+          echo "##vso[task.setvariable variable=artifactFileName]$ARTIFACT_FILE_NAME"
+        displayName: "Create image id"
+        env:
+          SERVICE_NAME: ${{ parameters.serviceName }}
+          SOURCE_VERSION: $(resources.pipeline.ciPipeline.sourceCommit)
+
+      - task: DownloadPipelineArtifact@2
+        displayName: "Download container artifact"
+        inputs:
+          buildType: "specific"
+          project: "$(resources.pipeline.ciPipeline.projectID)"
+          definition: "$(resources.pipeline.ciPipeline.pipelineID)"
+          runId: "$(resources.pipeline.ciPipeline.runID)"
+          runVersion: "specific"
+          preferTriggeringPipeline: true
+          targetPath: "$(Pipeline.Workspace)"
+
+      - task: AzureCLI@2
+        displayName: "Push image to ACR"
+        inputs:
+          azureSubscription: ${{ parameters.azureSubscription }}
+          addSpnToEnvironment: true
+          workingDirectory: "."
+          scriptLocation: inlineScript
+          scriptType: bash
+          inlineScript: |
+            set -ex
+
+            WORKSPACE=$(Pipeline.Workspace)
+            SERVICE_NAME=${{ parameters.serviceName }}
+            IMAGE_ID=$(imageId)
+            IMAGE_PATH_PREFIX=${{ parameters.imagePathPrefix }}
+            ACR_NAME=${{ parameters.acrName }}
+            EXTRA_TAG=${{ parameters.extraTag }}
+
+            ARTIFACT_PATH="${WORKSPACE}/${SERVICE_NAME}/${ARTIFACT_FILE_NAME}"
+            if [[ ! -f "${ARTIFACT_PATH}" ]]
+            then
+                echo "Missing artifact file ($ARTIFACT_PATH) from CI pipeline, did you trigger this pipeline manually?"
+                exit 1
+            fi
+            IMAGE_ID_FULL="${ACR_NAME}.azurecr.io/${IMAGE_PATH_PREFIX}/${IMAGE_ID}"
+            az acr login -n "${ACR_NAME}"
+            docker load < $ARTIFACT_PATH
+            docker tag $(imageId) "${IMAGE_ID_FULL}"
+            docker push "${IMAGE_ID_FULL}"
+            if [[ "${EXTRA_TAG}" != "" ]]
+            then
+              docker tag ${SERVICE_NAME}:${EXTRA_TAG}
+              docker push ${SERVICE_NAME}:${EXTRA_TAG}
+            fi
+        env:
+          ARTIFACT_FILE_NAME: $(artifactFileName)
+
+  - job: verify_push_${{ parameters.environment }}
+    condition: and(succeeded(), ne(variables['resources.pipeline.ciPipeline.sourceBranch'], '${{ parameters.sourceBranch }}'))
+    displayName: Verify image is in ${{ parameters.environment }} ACR
+    pool:
+      name: ${{ parameters.poolName }}
+    continueOnError: false
+    steps:
+      - bash: |
+          set -e
+          IMAGE_ID=${SERVICE_NAME}:${SOURCE_VERSION:0:7}
+          echo "##vso[task.setvariable variable=imageId]$IMAGE_ID"
+        displayName: "Create image id"
+        env:
+          SERVICE_NAME: ${{ parameters.serviceName }}
+          SOURCE_VERSION: $(resources.pipeline.ciPipeline.sourceCommit)
+
+      - task: AzureCLI@2
+        displayName: "Validate image exists in ACR"
+        inputs:
+          azureSubscription: ${{ parameters.azureSubscription }}
+          addSpnToEnvironment: true
+          workingDirectory: "."
+          scriptLocation: inlineScript
+          scriptType: bash
+          inlineScript: |
+            set -e
+            az acr repository show --name ${ACR_NAME} --image ${IMAGE_PATH_PREFIX}/${IMAGE_ID}
+        env:
+          IMAGE_ID: $(imageId)
+          IMAGE_PATH_PREFIX: ${{ parameters.imagePathPrefix }}
+          ACR_NAME: ${{ parameters.acrName }}

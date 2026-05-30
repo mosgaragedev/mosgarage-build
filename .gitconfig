@@ -1,0 +1,10 @@
+[safe]
+	directory = C:/Users/offic/homedev/dev/devcontainers
+	directory = C:/Users/offic/homedev/dev/devcontainers/mg-ubuntu-dev
+	directory = C:/Users/offic/homedev/dev/devcontainers/mosgarage-ubuntu
+	directory = C:/Users/offic/homedev/dev/devcontainers/ubuntu-devcontainer
+	directory = D:/WSL/workspace
+	directory = C:/Users/offic/homedev/dev
+	directory = C:/Users/offic/homedev/Mosgarage-Dev-Cloud
+	directory = C:/Users/offic/homedev/win-dev-home
+	directory = D:/WSL2/.mosgarage
